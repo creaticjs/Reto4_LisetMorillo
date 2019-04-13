@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <title>Reto 4 Vue js</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+</head>
+
+<body>
+  <div id="app">
+    <p></p>
+    <div class="text-center">
+      <img
+        src="https://i1.wp.com/blogthinkbig.com/wp-content/uploads/2018/07/nasa-logo-web-rgb_0-1.gif?resize=610%2C225&ssl=1"
+        class="rounded" alt="...">
+    </div>
+    <p></p>
+
+    <h2 style="text-align: center">API NASA</h2>
+    <div>
+      <button type="button" class="btn btn-primary" @click="getAsteroides()">Listar nombres del asteroides Neo
+        Feed</button>
+      <button type="button" class="btn btn-danger" @click="getInfoApod()">Apod</button>
+      <button type="button" class="btn btn-success" @click="getImagenesTierrra()">Tierra</button>
+      <p></p>
+      <img v-if="!verasteroides && !verapod && !vertierra" src="https://api.nasa.gov/images/apod.jpg" alt="Car" style="width:100%">
+    </div>
+
+    <div class="container" v-if="verasteroides">
+      <div v-html="asteroides"> </div>
+    </div>
+
+    <div class="w3-container w3-red" v-if="verapod">
+      <h1>APOD</h1>
+      <div class="w3-container">
+        <p> {{ apod }}</p>
+        <img src="https://apod.nasa.gov/apod/image/1904/JMD_Rosette_Rotated1024.jpg" alt="Car" style="width:100%">
+      </div>
+    </div>
+
+    <div class="w3-container w3-teal" v-if="vertierra">
+      <div class="w3-container" v-if = "tierra.length > 0">
+        <p> {{ tierra[0].caption }}</p>
+
+        <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img :src="tierra[0].image | armarUrlImagen" class="d-block w-100" alt="...">
+              <p>Latitud {{tierra[0].centroid_coordinates.lat}} </p>
+              <p> Longitud: {{tierra[0].centroid_coordinates.lon}}</p>
+            </div>
+            <div class="carousel-item" v-for="info in tierra">
+              <img :src="info.image | armarUrlImagen" class="d-block w-100" alt="...">
+              <p>Latitud {{info.centroid_coordinates.lat}} </p>
+              <p> Longitud: {{info.centroid_coordinates.lon}}</p>
+            </div>
+          </div>
+          <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+    crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+  <script>
+    var app = new Vue({
+      el: "#app",
+      data: {
+
+        asteroides: "",
+        apod: "",
+        tierra: [],
+        imagen1: "",
+        verasteroides: false,
+        verapod: false,
+        vertierra: false,
+        verMars: false
+      },
+      methods: {
+        getAsteroides: function () {
+          this.verasteroides = true;
+          this.verapod = false;
+          this.vertierra = false;
+
+          fetch("https://api.nasa.gov/neo/rest/v1/feed?start_date=2015-09-07&end_date=2015-09-08&api_key=AOVBJDxP9BRz8QK7AaXKHBNHjxHhlsmqYcCgNwSS")
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              console.log(data.near_earth_objects['2015-09-08'][1].name);
+              app.asteroides = app.listarAsteroides( data.near_earth_objects['2015-09-08']);
+            })
+            .catch(function (error) {
+              console.log(error.message);
+
+            });
+        },
+
+        listarAsteroides: function (lista){
+            var informacion = "Nombres del asteroides Neo Feed son: <br>";
+            var indice =1;
+            lista.forEach(element => {
+              informacion += indice +  ". " + element.name + "<br>";
+              indice++;
+            });
+            return informacion;
+        },
+
+        getInfoApod: function () {
+          this.verapod = true;
+          this.verasteroides = false;
+          this.vertierra = false;
+
+          fetch("https://api.nasa.gov/planetary/apod?api_key=AOVBJDxP9BRz8QK7AaXKHBNHjxHhlsmqYcCgNwSS")
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              console.log("datos de apod:" + data.copyright);
+              app.apod = "APOD es la imagen astronómica más popular del día, incluso es lo más popular entre las agencias federales: "
+                + " 1. copyright:  " + data.copyright + " " + " 2. Explanation: " + data.explanation + " 3. Imagen: ";
+            })
+            .catch(function (error) {
+              console.log(error.message);
+
+            });
+        },
+
+        getImagenesTierrra: function () {
+          this.vertierra=true;
+          this.verasteroides = false;
+          this.verapod = false;
+         
+          fetch("https://api.nasa.gov/EPIC/api/natural?api_key=AOVBJDxP9BRz8QK7AaXKHBNHjxHhlsmqYcCgNwSS")
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+
+              app.tierra = data;
+              app.vertierra = true;
+
+            })
+            .catch(function (error) {
+              console.log(error.message);
+
+            });
+        }
+
+      }, filters: {
+        armarUrlImagen: function (image) {
+          return 'https://epic.gsfc.nasa.gov/archive/natural/2019/04/12/png/' + image + '.png';
+          
+        }
+      },
+
+      mostrarMars: function () {
+          this.verasteroides = false;
+          this.verapod = false;
+          this.vertierra = false;
+          this.verMars = true;
+
+          fetch("https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?sol=1000&api_key=AOVBJDxP9BRz8QK7AaXKHBNHjxHhlsmqYcCgNwSS")
+            .then(function (response) {
+              return response.json();
+            })
+            .then(function (data) {
+              console.log(data);
+              app.asteroides = app.listarAsteroides( data.near_earth_objects['2015-09-08']);
+            })
+            .catch(function (error) {
+              console.log(error.message);
+
+            });
+        }
+
+
+    });
+  </script>
+</body>
+
+</html>
